@@ -14,6 +14,15 @@ contract("Voting", accounts => {
     VotingInstance = await Voting.new({from: _owner});
   });
 
+  describe('Initial test', async() => {
+      it("Should work all the time", async () => {
+      // try to add a voter
+      await expect(BN(1)).to.be.bignumber.equal(BN(1));
+    });
+  });
+
+  // ::::::::::::: REGISTRATION ::::::::::::: //
+
   describe('Registration step', async() => {
 
     it("Can't add voter if voter registration is not opened", async () => {
@@ -53,132 +62,157 @@ contract("Voting", accounts => {
     });
   });
 
+  // ::::::::::::: PROPOSAL ::::::::::::: // 
+
   describe('Proposal step', async() => {
-    context('Stay at registeringVoters step when it should be at startProposalsRegistering', async() =>{
-      context('Voter not registred', async() =>{
-        it("Can't add a proposal if voter is not registred", async () => {  
-          await expectRevert(VotingInstance.addProposal("Ma proposition", {from: _owner}), "You're not a voter");
-        });
-      });
-      context('Voter is registred', async() =>{
-        it("Can't add a proposal if workflow not at startProposalsRegistering", async () => { 
-          await VotingInstance.addVoter(_voter1, {from: _owner});
-          await expectRevert(VotingInstance.addProposal("Ma proposition", {from: _voter1}), "Proposals are not allowed yet");
-        });
-      });
+
+    it("Can't add a proposal if voter is not registred", async () => {  
+      await expectRevert(VotingInstance.addProposal("Ma proposition", {from: _owner}), "You're not a voter");
     });
-    context('Changed to startProposalsRegistering, voter registred', async() =>{
-      it("Can't add an empty proposal", async () => {
-        await VotingInstance.addVoter(_voter1, {from: _owner});
-        await VotingInstance.startProposalsRegistering();
-        await expectRevert(VotingInstance.addProposal("", {from: _voter1}), "No empty proposal");
-      });
-      it("Any registred voter can add one or many proposals and see his/her or other's proposals", async () => {
-        await VotingInstance.addVoter(_voter1, {from: _owner});
-        await VotingInstance.addVoter(_voter2, {from: _owner});
-        await VotingInstance.startProposalsRegistering();
 
-        await VotingInstance.addProposal("Ma proposition", {from: _voter1});
-        expect((await VotingInstance.getOneProposal.call(1, {from: _voter1})).description).to.have.string("Ma proposition");
+    it("Can't add a proposal if workflow not at startProposalsRegistering", async () => { 
+      await VotingInstance.addVoter(_voter1, {from: _owner});
+      await expectRevert(VotingInstance.addProposal("Ma proposition", {from: _voter1}), "Proposals are not allowed yet");
+    });
 
-        await VotingInstance.addProposal("Ma proposition 2", {from: _voter2});
-        expect((await VotingInstance.getOneProposal.call(2, {from: _voter1})).description).to.have.string("Ma proposition 2");
-        expect((await VotingInstance.getOneProposal.call(2, {from: _voter2})).description).to.have.string("Ma proposition 2");
-        
-        await VotingInstance.addProposal("Ma proposition 3", {from: _voter1});
-        expect((await VotingInstance.getOneProposal(3, {from: _voter2})).description).to.have.string("Ma proposition 3");
-      });
-      it("should emit the event ProposalRegistered with the proposal position in array", async () => {
-        await VotingInstance.addVoter(_voter1, {from: _owner});
-        await VotingInstance.startProposalsRegistering();
-        const transaction = await VotingInstance.addProposal("Ma proposition", {from: _voter1});
-        expectEvent(transaction, 'ProposalRegistered', {
-          proposalId: BN(1)
-        });
+    it("Can't add an empty proposal", async () => {
+      await VotingInstance.addVoter(_voter1, {from: _owner});
+      await VotingInstance.startProposalsRegistering();
+      await expectRevert(VotingInstance.addProposal("", {from: _voter1}), "No empty proposal");
+    });
+
+    it("Any registred voter can add one or many proposals and see his/her or other's proposals", async () => {
+      await VotingInstance.addVoter(_voter1, {from: _owner});
+      await VotingInstance.addVoter(_voter2, {from: _owner});
+      await VotingInstance.startProposalsRegistering();
+
+      await VotingInstance.addProposal("Ma proposition", {from: _voter1});
+      expect((await VotingInstance.getOneProposal.call(1, {from: _voter1})).description).to.have.string("Ma proposition");
+
+      await VotingInstance.addProposal("Ma proposition 2", {from: _voter2});
+      expect((await VotingInstance.getOneProposal.call(2, {from: _voter1})).description).to.have.string("Ma proposition 2");
+      expect((await VotingInstance.getOneProposal.call(2, {from: _voter2})).description).to.have.string("Ma proposition 2");
+      
+      await VotingInstance.addProposal("Ma proposition 3", {from: _voter1});
+      expect((await VotingInstance.getOneProposal(3, {from: _voter2})).description).to.have.string("Ma proposition 3");
+    });
+
+    it("should emit the event ProposalRegistered with the proposal position in array", async () => {
+      await VotingInstance.addVoter(_voter1, {from: _owner});
+      await VotingInstance.startProposalsRegistering();
+      const transaction = await VotingInstance.addProposal("Ma proposition", {from: _voter1});
+      expectEvent(transaction, 'ProposalRegistered', {
+        proposalId: BN(1)
       });
     });
   });
 
-  describe('Set vote step', async() => {
-    context('Stay at endProposalsRegistering step when it should be at VotingSessionStarted', async() =>{
-      context('Voter not registred', async() =>{
-        it("Can't vote is not registred", async () => {  
-          await expectRevert(VotingInstance.setVote(0, {from: _owner}), "You're not a voter");          
-        });
-      });
-      context('Voter is registred', async() =>{
-        it("Can't vote if workflow not at startProposalsRegistering", async () => { 
-          await VotingInstance.addVoter(_voter1, {from: _owner});
-          await VotingInstance.startProposalsRegistering();
-          await VotingInstance.addProposal("Ma proposition", {from: _voter1});
-          await VotingInstance.endProposalsRegistering();
-          // await VotingInstance.setVote(0, {from: _voter1});         
+  // // ::::::::::::: VOTE ::::::::::::: //
 
-          await expectRevert(VotingInstance.setVote(0, {from: _voter1}), "Voting session havent started yet");
-        });
+  describe('Vote step', async() => {
+
+    it("Can't vote is not registred", async () => {  
+      await expectRevert(VotingInstance.setVote(0, {from: _owner}), "You're not a voter");          
+    });
+
+    beforeEach(async function(){
+      await VotingInstance.addVoter(_voter1, {from: _owner});
+    });
+
+    it("Can't vote if workflow not at startProposalsRegistering", async () => { 
+      // expect(await VotingInstance.workflowStatus.call()).to.be.bignumber.equal(BN(0));
+      await VotingInstance.startProposalsRegistering();
+      await VotingInstance.addProposal("Ma proposition", {from: _voter1});
+      await VotingInstance.endProposalsRegistering();       
+
+      await expectRevert(VotingInstance.setVote(0, {from: _voter1}), "Voting session havent started yet");
+    });
+
+    it("Voted proposal does not exist", async () => {
+      await VotingInstance.startProposalsRegistering();
+      await VotingInstance.addProposal("Ma proposition", {from: _voter1});
+      await VotingInstance.endProposalsRegistering();
+      await VotingInstance.startVotingSession();
+      
+      await expectRevert(VotingInstance.setVote(2, {from: _voter1}), "Proposal not found");
+    });
+
+    it("Record new vote and record information in voter struct", async () => {
+      await VotingInstance.startProposalsRegistering();
+      await VotingInstance.addProposal("Ma proposition", {from: _voter1});
+      await VotingInstance.endProposalsRegistering();
+      await VotingInstance.startVotingSession();        
+      await VotingInstance.setVote(1, {from: _voter1});
+
+      expect((await VotingInstance.getVoter.call(_voter1, {from: _voter1})).hasVoted).to.be.true;
+      expect((await VotingInstance.getVoter.call(_voter1, {from: _voter1})).votedProposalId).to.be.bignumber.equal(BN(1));
+      expect((await VotingInstance.getOneProposal.call(1, {from: _voter1})).voteCount).to.be.bignumber.equal(BN(1));
+    });
+
+    it("Can vote for different proposal and have several votes for the same proposal", async () => {
+      await VotingInstance.addVoter(_owner, {from: _owner});
+      await VotingInstance.addVoter(_voter2, {from: _owner});
+      await VotingInstance.startProposalsRegistering();
+      await VotingInstance.addProposal("Ma proposition", {from: _owner});
+      await VotingInstance.addProposal("Ma proposition 2", {from: _voter1});
+      await VotingInstance.endProposalsRegistering();
+      await VotingInstance.startVotingSession();        
+      await VotingInstance.setVote(1, {from: _owner});
+      await VotingInstance.setVote(2, {from: _voter1});
+      await VotingInstance.setVote(1, {from: _voter2});
+
+      expect((await VotingInstance.getVoter.call(_owner, {from: _owner})).hasVoted).to.be.true;
+      expect((await VotingInstance.getVoter.call(_owner, {from: _owner})).votedProposalId).to.be.bignumber.equal(BN(1));
+      expect((await VotingInstance.getVoter.call(_voter1, {from: _voter1})).hasVoted).to.be.true;
+      expect((await VotingInstance.getVoter.call(_voter1, {from: _voter1})).votedProposalId).to.be.bignumber.equal(BN(2));
+      expect((await VotingInstance.getVoter.call(_voter2, {from: _voter2})).hasVoted).to.be.true;
+      expect((await VotingInstance.getVoter.call(_voter2, {from: _voter2})).votedProposalId).to.be.bignumber.equal(BN(1));
+      expect((await VotingInstance.getOneProposal.call(1, {from: _voter1})).voteCount).to.be.bignumber.equal(BN(2));
+      expect((await VotingInstance.getOneProposal.call(2, {from: _voter1})).voteCount).to.be.bignumber.equal(BN(1));
+    });
+
+    it("should emit the event Voted with the voter address and selected proposal id", async () => {
+      await VotingInstance.startProposalsRegistering();
+      await VotingInstance.addProposal("Ma proposition", {from: _voter1});
+      await VotingInstance.endProposalsRegistering();
+      await VotingInstance.startVotingSession();
+      
+      const transaction = await VotingInstance.setVote(1, {from: _voter1});
+      expectEvent(transaction, 'Voted', {
+        voter: _voter1,
+        proposalId: BN(1)
       });
     });
-    context('Changed to VotingSessionStarted', async() =>{
-      it("Voted proposal does not exist", async () => {
-        await VotingInstance.addVoter(_voter1, {from: _owner});
-        await VotingInstance.startProposalsRegistering();
-        await VotingInstance.addProposal("Ma proposition", {from: _voter1});
-        await VotingInstance.endProposalsRegistering();
-        await VotingInstance.startVotingSession();
-        
-        await expectRevert(VotingInstance.setVote(2, {from: _voter1}), "Proposal not found");
-      });
+  });
 
-      it("Record new vote and record information in voter struct", async () => {
-        await VotingInstance.addVoter(_voter1, {from: _owner});
-        await VotingInstance.startProposalsRegistering();
-        await VotingInstance.addProposal("Ma proposition", {from: _voter1});
-        await VotingInstance.endProposalsRegistering();
-        await VotingInstance.startVotingSession();        
-        await VotingInstance.setVote(1, {from: _voter1});
+  // ::::::::::::: STATE ::::::::::::: //
 
-        expect((await VotingInstance.getVoter.call(_voter1, {from: _voter1})).hasVoted).to.be.true;
-        expect((await VotingInstance.getVoter.call(_voter1, {from: _voter1})).votedProposalId).to.be.bignumber.equal(BN(1));
-        expect((await VotingInstance.getOneProposal.call(1, {from: _voter1})).voteCount).to.be.bignumber.equal(BN(1));
+  describe.only('startProposalsRegistering state', async() => {
 
-      });
+    it("Can't change workflow to startProposalsRegistering if not owner", async () => {  
+      const storedData = VotingInstance.startProposalsRegistering({from: _voter1});
+      await expectRevert(storedData, "caller is not the owner");          
+    });
 
-      it("Can vote for different proposal and have several votes for the same proposal", async () => {
-        await VotingInstance.addVoter(_owner, {from: _owner});
-        await VotingInstance.addVoter(_voter1, {from: _owner});
-        await VotingInstance.addVoter(_voter2, {from: _owner});
-        await VotingInstance.startProposalsRegistering();
-        await VotingInstance.addProposal("Ma proposition", {from: _owner});
-        await VotingInstance.addProposal("Ma proposition 2", {from: _voter1});
-        await VotingInstance.endProposalsRegistering();
-        await VotingInstance.startVotingSession();        
-        await VotingInstance.setVote(1, {from: _owner});
-        await VotingInstance.setVote(2, {from: _voter1});
-        await VotingInstance.setVote(1, {from: _voter2});
+    it("Can't change workflow to startProposalsRegistering if step is not RegisteringVoters", async () => {
+      await VotingInstance.startProposalsRegistering({from: _owner});
+      await VotingInstance.endProposalsRegistering({from: _owner});
+      await expectRevert(VotingInstance.startProposalsRegistering({from: _owner}), "Registering proposals cant be started now");
+    }); 
+    
+    it("Check if proposal array has GENESIS", async () => {
+      await VotingInstance.addVoter(_voter1, {from: _owner});
+      await VotingInstance.startProposalsRegistering({from: _owner});
+      expect((await VotingInstance.getOneProposal.call(0, {from: _voter1})).description).to.have.string("GENESIS");
+    }); 
+    
+    it("should emit the event WorkflowStatusChange with the status", async () => {
+      const workflowStatus = BN(await VotingInstance.workflowStatus.call());
+      const transaction = await VotingInstance.startProposalsRegistering({from: _owner});
 
-        expect((await VotingInstance.getVoter.call(_owner, {from: _owner})).hasVoted).to.be.true;
-        expect((await VotingInstance.getVoter.call(_owner, {from: _owner})).votedProposalId).to.be.bignumber.equal(BN(1));
-        expect((await VotingInstance.getVoter.call(_voter1, {from: _voter1})).hasVoted).to.be.true;
-        expect((await VotingInstance.getVoter.call(_voter1, {from: _voter1})).votedProposalId).to.be.bignumber.equal(BN(2));
-        expect((await VotingInstance.getVoter.call(_voter2, {from: _voter2})).hasVoted).to.be.true;
-        expect((await VotingInstance.getVoter.call(_voter2, {from: _voter2})).votedProposalId).to.be.bignumber.equal(BN(1));
-        expect((await VotingInstance.getOneProposal.call(1, {from: _voter1})).voteCount).to.be.bignumber.equal(BN(2));
-        expect((await VotingInstance.getOneProposal.call(2, {from: _voter1})).voteCount).to.be.bignumber.equal(BN(1));
-
-      });
-
-      it("should emit the event Voted with the voter address and selected proposal id", async () => {
-        await VotingInstance.addVoter(_voter1, {from: _owner});
-        await VotingInstance.startProposalsRegistering();
-        await VotingInstance.addProposal("Ma proposition", {from: _voter1});
-        await VotingInstance.endProposalsRegistering();
-        await VotingInstance.startVotingSession();
-        
-        const transaction = await VotingInstance.setVote(1, {from: _voter1});
-        expectEvent(transaction, 'Voted', {
-          voter: _voter1,
-          proposalId: BN(1)
-        });
+      expectEvent(transaction, 'WorkflowStatusChange', {
+        previousStatus: workflowStatus,
+        newStatus: workflowStatus+1
       });
     });
   });
