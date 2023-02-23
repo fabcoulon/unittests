@@ -244,4 +244,71 @@ contract("Voting", accounts => {
       });
     });
   });
+
+  describe('startVotingSession state', async() => {
+
+    it("Can't change workflow to startVotingSession if not owner", async () => {  
+      await VotingInstance.startProposalsRegistering({from: _owner});
+      await VotingInstance.endProposalsRegistering({from: _owner});
+      await expectRevert(VotingInstance.startVotingSession({from: _voter1}), "caller is not the owner");          
+    });
+
+    it("Can't change workflow to startVotingSession if step is not endProposalsRegistering", async () => {
+      await expectRevert(VotingInstance.startVotingSession({from: _owner}), "Registering proposals phase is not finished");
+    });
+
+    it("Can change workflow to startVotingSession", async () => {  
+      await VotingInstance.startProposalsRegistering({from: _owner});
+      await VotingInstance.endProposalsRegistering({from: _owner});
+      await VotingInstance.startVotingSession({from: _owner});
+      expect(await VotingInstance.workflowStatus.call()).to.be.bignumber.equal(BN(3));        
+    });
+
+    it("should emit the event WorkflowStatusChange with the status", async () => {
+      await VotingInstance.startProposalsRegistering({from: _owner});
+      await VotingInstance.endProposalsRegistering({from: _owner});
+      const workflowStatus = BN(await VotingInstance.workflowStatus.call()).words[0];
+      const transaction = await VotingInstance.startVotingSession({from: _owner});
+
+      expectEvent(transaction, 'WorkflowStatusChange', {
+        previousStatus: BN(workflowStatus),
+        newStatus: BN(workflowStatus+1)
+      });
+    });
+  });
+
+  describe.only('endVotingSession state', async() => {
+
+    it("Can't change workflow to endVotingSession if not owner", async () => {  
+      await VotingInstance.startProposalsRegistering({from: _owner});
+      await VotingInstance.endProposalsRegistering({from: _owner});
+      await VotingInstance.startVotingSession({from: _owner});
+      await expectRevert(VotingInstance.endVotingSession({from: _voter1}), "caller is not the owner");          
+    });
+
+    it("Can't change workflow to endVotingSession if step is not startVotingSession", async () => {
+      await expectRevert(VotingInstance.endVotingSession({from: _owner}), "Voting session havent started yet");
+    });
+
+    it("Can change workflow to endVotingSession", async () => {  
+      await VotingInstance.startProposalsRegistering({from: _owner});
+      await VotingInstance.endProposalsRegistering({from: _owner});
+      await VotingInstance.startVotingSession({from: _owner});
+      await VotingInstance.endVotingSession({from: _owner});
+      expect(await VotingInstance.workflowStatus.call()).to.be.bignumber.equal(BN(4));        
+    });
+
+    it("should emit the event WorkflowStatusChange with the status", async () => {
+      await VotingInstance.startProposalsRegistering({from: _owner});
+      await VotingInstance.endProposalsRegistering({from: _owner});
+      await VotingInstance.startVotingSession({from: _owner});
+      const workflowStatus = BN(await VotingInstance.workflowStatus.call()).words[0];
+      const transaction = await VotingInstance.endVotingSession({from: _owner});
+
+      expectEvent(transaction, 'WorkflowStatusChange', {
+        previousStatus: BN(workflowStatus),
+        newStatus: BN(workflowStatus+1)
+      });
+    });
+  });
 });
