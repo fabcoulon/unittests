@@ -38,7 +38,7 @@ contract("Voting", accounts => {
 
   // ::::::::::::: REGISTRATION ::::::::::::: //
 
-  describe.only('Registration step', async() => {
+  describe('Registration step', async() => {
 
     beforeEach(async function(){
       VotingInstance = await Voting.new({from: _owner});
@@ -79,25 +79,23 @@ contract("Voting", accounts => {
 
     beforeEach(async function(){
       VotingInstance = await Voting.new({from: _owner});
+      await VotingInstance.addVoter(_voter1, {from: _owner});
     });
 
     it("Can't add a proposal if voter is not registred", async () => {  
       await expectRevert(VotingInstance.addProposal("Ma proposition", {from: _owner}), "You're not a voter");
     });
 
-    it("Can't add a proposal if workflow not at startProposalsRegistering", async () => { 
-      await VotingInstance.addVoter(_voter1, {from: _owner});
+    it("Can't add a proposal if workflow not at startProposalsRegistering", async () => {    
       await expectRevert(VotingInstance.addProposal("Ma proposition", {from: _voter1}), "Proposals are not allowed yet");
     });
 
     it("Can't add an empty proposal", async () => {
-      await VotingInstance.addVoter(_voter1, {from: _owner});
       await VotingInstance.startProposalsRegistering();
       await expectRevert(VotingInstance.addProposal("", {from: _voter1}), "No empty proposal");
     });
 
     it("Any registred voter can add one or many proposals and see his/her or other's proposals", async () => {
-      await VotingInstance.addVoter(_voter1, {from: _owner});
       await VotingInstance.addVoter(_voter2, {from: _owner});
       await VotingInstance.startProposalsRegistering();
 
@@ -113,7 +111,6 @@ contract("Voting", accounts => {
     });
 
     it("should emit the event ProposalRegistered with the proposal position in array", async () => {
-      await VotingInstance.addVoter(_voter1, {from: _owner});
       await VotingInstance.startProposalsRegistering();
       const transaction = await VotingInstance.addProposal("Ma proposition", {from: _voter1});
       expectEvent(transaction, 'ProposalRegistered', {
@@ -128,14 +125,11 @@ contract("Voting", accounts => {
 
     beforeEach(async function(){
       VotingInstance = await Voting.new({from: _owner});
+      await VotingInstance.addVoter(_voter1, {from: _owner});
     });
 
     it("Can't vote is not registred", async () => {  
       await expectRevert(VotingInstance.setVote(0, {from: _voterNotRegistred}), "You're not a voter");          
-    });
-
-    beforeEach(async function(){
-      await VotingInstance.addVoter(_voter1, {from: _owner});
     });
 
     it("Can't vote if workflow not at startProposalsRegistering", async () => { 
@@ -314,15 +308,15 @@ contract("Voting", accounts => {
     });
   });
 
-  describe('endVotingSession state', async() => {
+  describe.only('endVotingSession state', async() => {
 
     beforeEach(async function(){
       VotingInstance = await Voting.new({from: _owner});
+      await VotingInstance.startProposalsRegistering({from: _owner});
+      await VotingInstance.endProposalsRegistering({from: _owner});
     });
 
     it("Can't change workflow to endVotingSession if not owner", async () => {  
-      await VotingInstance.startProposalsRegistering({from: _owner});
-      await VotingInstance.endProposalsRegistering({from: _owner});
       await VotingInstance.startVotingSession({from: _owner});
       await expectRevert(VotingInstance.endVotingSession({from: _voter1}), "caller is not the owner");          
     });
@@ -332,16 +326,12 @@ contract("Voting", accounts => {
     });
 
     it("Can change workflow to endVotingSession", async () => {  
-      await VotingInstance.startProposalsRegistering({from: _owner});
-      await VotingInstance.endProposalsRegistering({from: _owner});
       await VotingInstance.startVotingSession({from: _owner});
       await VotingInstance.endVotingSession({from: _owner});
       expect(await VotingInstance.workflowStatus.call()).to.be.bignumber.equal(BN(4));        
     });
 
     it("should emit the event WorkflowStatusChange with the status", async () => {
-      await VotingInstance.startProposalsRegistering({from: _owner});
-      await VotingInstance.endProposalsRegistering({from: _owner});
       await VotingInstance.startVotingSession({from: _owner});
       const workflowStatus = (await VotingInstance.workflowStatus.call());
       const transaction = await VotingInstance.endVotingSession({from: _owner});
@@ -443,5 +433,4 @@ contract("Voting", accounts => {
       });
     });
   });
-
 });
