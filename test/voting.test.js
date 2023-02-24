@@ -38,13 +38,11 @@ contract("Voting", accounts => {
 
     it("can't add voter if not owner", async () => {
       await expectRevert(VotingInstance.addVoter(_voter1, {from: _voter1}), "caller is not the owner");
-      // expect((await VotingInstance.voters.call(_voter1)).isRegistered).to.be.false;
       await expectRevert(VotingInstance.getVoter.call(_voter1, {from: _voter1}), "You're not a voter");
     });
 
     it("Can add a voter if owner", async () => {
       await VotingInstance.addVoter(_voter1, {from: _owner});
-      // expect((await VotingInstance.voters.call(_voter1)).isRegistered).to.be.true;
       expect((await VotingInstance.getVoter.call(_voter1, {from: _voter1})).isRegistered).to.be.true;
     });
 
@@ -114,7 +112,7 @@ contract("Voting", accounts => {
     });
 
     it("Can't vote if workflow not at startProposalsRegistering", async () => { 
-      // expect(await VotingInstance.workflowStatus.call()).to.be.bignumber.equal(BN(0));
+
       await VotingInstance.startProposalsRegistering();
       await VotingInstance.addProposal("Ma proposition", {from: _voter1});
       await VotingInstance.endProposalsRegistering();       
@@ -324,7 +322,20 @@ contract("Voting", accounts => {
       await expectRevert(storedData, "Current status is not voting session ended");          
     });
 
-    it("Can call tallyVotes", async () => {
+    it("Can call tallyVotes with one voter on a single proposal", async () => {
+      await VotingInstance.addVoter(_owner, {from: _owner});
+      await VotingInstance.startProposalsRegistering({from: _owner});
+      await VotingInstance.addProposal("Ma proposition", {from: _owner});
+      await VotingInstance.endProposalsRegistering({from: _owner});
+      await VotingInstance.startVotingSession({from: _owner});
+      await VotingInstance.setVote(1, {from: _owner});
+      await VotingInstance.endVotingSession({from: _owner});
+      await VotingInstance.tallyVotes({from: _owner});   
+      const transaction = await VotingInstance.winningProposalID.call();
+      expect(transaction).to.be.bignumber.equal(BN(1));
+    });
+
+    it("Should find a winner even if single voter with one proposal", async () => {
       await VotingInstance.addVoter(_owner, {from: _owner});
       await VotingInstance.addVoter(_voter1, {from: _owner});
       await VotingInstance.startProposalsRegistering({from: _owner});
@@ -334,6 +345,22 @@ contract("Voting", accounts => {
       await VotingInstance.startVotingSession({from: _owner});
       await VotingInstance.setVote(1, {from: _owner});
       await VotingInstance.setVote(1, {from: _voter1});
+      await VotingInstance.endVotingSession({from: _owner});
+      await VotingInstance.tallyVotes({from: _owner});   
+      const transaction = await VotingInstance.winningProposalID.call();
+      expect(transaction).to.be.bignumber.equal(BN(1));
+    });
+
+    it("Should select the first proposal if two proposals have the same amount of vote", async () => {
+      await VotingInstance.addVoter(_owner, {from: _owner});
+      await VotingInstance.addVoter(_voter1, {from: _owner});
+      await VotingInstance.startProposalsRegistering({from: _owner});
+      await VotingInstance.addProposal("Ma proposition", {from: _owner});
+      await VotingInstance.addProposal("Ma proposition 2", {from: _voter1});
+      await VotingInstance.endProposalsRegistering({from: _owner});
+      await VotingInstance.startVotingSession({from: _owner});
+      await VotingInstance.setVote(1, {from: _owner});
+      await VotingInstance.setVote(2, {from: _voter1});
       await VotingInstance.endVotingSession({from: _owner});
       await VotingInstance.tallyVotes({from: _owner});   
       const transaction = await VotingInstance.winningProposalID.call();
