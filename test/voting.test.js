@@ -10,9 +10,7 @@ contract("Voting", accounts => {
 
   let VotingInstance;
 
-  beforeEach(async function(){
-    VotingInstance = await Voting.new({from: _owner});
-  });
+// ::::::::::::: INITIAL TEST ::::::::::::: //
 
   describe('Initial test', async() => {
       it("Should work all the time", async () => {
@@ -23,7 +21,11 @@ contract("Voting", accounts => {
 
   // ::::::::::::: GETTERS ::::::::::::: //
 
-  describe('Getters', async() => {
+  describe('Getters tests', async() => {
+
+    before(async function(){
+      VotingInstance = await Voting.new({from: _owner});
+    });
 
     it("Can't add get voter if not owner", async () => {
       await expectRevert(VotingInstance.getVoter.call(_voter1, {from: _voter1}), "You're not a voter");
@@ -36,7 +38,11 @@ contract("Voting", accounts => {
 
   // ::::::::::::: REGISTRATION ::::::::::::: //
 
-  describe('Registration step', async() => {
+  describe.only('Registration step', async() => {
+
+    beforeEach(async function(){
+      VotingInstance = await Voting.new({from: _owner});
+    });
 
     it("Can't add voter if voter registration is not opened", async () => {
       await VotingInstance.startProposalsRegistering();
@@ -70,6 +76,10 @@ contract("Voting", accounts => {
   // ::::::::::::: PROPOSAL ::::::::::::: // 
 
   describe('Proposal step', async() => {
+
+    beforeEach(async function(){
+      VotingInstance = await Voting.new({from: _owner});
+    });
 
     it("Can't add a proposal if voter is not registred", async () => {  
       await expectRevert(VotingInstance.addProposal("Ma proposition", {from: _owner}), "You're not a voter");
@@ -115,6 +125,10 @@ contract("Voting", accounts => {
   // // ::::::::::::: VOTE ::::::::::::: //
 
   describe('Vote step', async() => {
+
+    beforeEach(async function(){
+      VotingInstance = await Voting.new({from: _owner});
+    });
 
     it("Can't vote is not registred", async () => {  
       await expectRevert(VotingInstance.setVote(0, {from: _voterNotRegistred}), "You're not a voter");          
@@ -194,6 +208,10 @@ contract("Voting", accounts => {
 
   describe('startProposalsRegistering state', async() => {
 
+    beforeEach(async function(){
+      VotingInstance = await Voting.new({from: _owner});
+    });
+
     it("Can't change workflow to startProposalsRegistering if not owner", async () => {  
       const storedData = VotingInstance.startProposalsRegistering({from: _voter1});
       await expectRevert(storedData, "caller is not the owner");          
@@ -229,6 +247,10 @@ contract("Voting", accounts => {
 
   describe('endProposalsRegistering state', async() => {
 
+    beforeEach(async function(){
+      VotingInstance = await Voting.new({from: _owner});
+    });
+
     it("Can't change workflow to endProposalsRegistering if not owner", async () => {  
       await VotingInstance.startProposalsRegistering({from: _owner});
       await expectRevert(VotingInstance.endProposalsRegistering({from: _voter1}), "caller is not the owner");          
@@ -257,6 +279,10 @@ contract("Voting", accounts => {
   });
 
   describe('startVotingSession state', async() => {
+
+    beforeEach(async function(){
+      VotingInstance = await Voting.new({from: _owner});
+    });
 
     it("Can't change workflow to startVotingSession if not owner", async () => {  
       await VotingInstance.startProposalsRegistering({from: _owner});
@@ -289,6 +315,10 @@ contract("Voting", accounts => {
   });
 
   describe('endVotingSession state', async() => {
+
+    beforeEach(async function(){
+      VotingInstance = await Voting.new({from: _owner});
+    });
 
     it("Can't change workflow to endVotingSession if not owner", async () => {  
       await VotingInstance.startProposalsRegistering({from: _owner});
@@ -325,6 +355,10 @@ contract("Voting", accounts => {
 
   describe('tallyVotes state', async() => {
 
+    beforeEach(async function(){
+      VotingInstance = await Voting.new({from: _owner});
+    });
+    
     it("Can't call tallyVotes if not owner", async () => {  
       const storedData = VotingInstance.tallyVotes({from: _voter1});
       await expectRevert(storedData, "caller is not the owner");          
