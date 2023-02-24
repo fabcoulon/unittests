@@ -276,10 +276,10 @@ contract("Voting", accounts => {
 
     beforeEach(async function(){
       VotingInstance = await Voting.new({from: _owner});
+      await VotingInstance.startProposalsRegistering({from: _owner});
     });
 
     it("Can't change workflow to startVotingSession if not owner", async () => {  
-      await VotingInstance.startProposalsRegistering({from: _owner});
       await VotingInstance.endProposalsRegistering({from: _owner});
       await expectRevert(VotingInstance.startVotingSession({from: _voter1}), "caller is not the owner");          
     });
@@ -289,14 +289,12 @@ contract("Voting", accounts => {
     });
 
     it("Can change workflow to startVotingSession", async () => {  
-      await VotingInstance.startProposalsRegistering({from: _owner});
       await VotingInstance.endProposalsRegistering({from: _owner});
       await VotingInstance.startVotingSession({from: _owner});
       expect(await VotingInstance.workflowStatus.call()).to.be.bignumber.equal(BN(3));        
     });
 
     it("should emit the event WorkflowStatusChange with the status", async () => {
-      await VotingInstance.startProposalsRegistering({from: _owner});
       await VotingInstance.endProposalsRegistering({from: _owner});
       const workflowStatus = (await VotingInstance.workflowStatus.call());
       const transaction = await VotingInstance.startVotingSession({from: _owner});
@@ -308,7 +306,7 @@ contract("Voting", accounts => {
     });
   });
 
-  describe.only('endVotingSession state', async() => {
+  describe('endVotingSession state', async() => {
 
     beforeEach(async function(){
       VotingInstance = await Voting.new({from: _owner});
