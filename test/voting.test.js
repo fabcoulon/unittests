@@ -206,7 +206,7 @@ contract("Voting", accounts => {
     }); 
     
     it("should emit the event WorkflowStatusChange with the status", async () => {
-      const workflowStatus = BN(await VotingInstance.workflowStatus.call()).words[0];
+      const workflowStatus = await VotingInstance.workflowStatus.call();
       const transaction = await VotingInstance.startProposalsRegistering({from: _owner});
 
       expectEvent(transaction, 'WorkflowStatusChange', {
@@ -235,12 +235,12 @@ contract("Voting", accounts => {
 
     it("should emit the event WorkflowStatusChange with the status", async () => {
       await VotingInstance.startProposalsRegistering({from: _owner});
-      const workflowStatus = BN(await VotingInstance.workflowStatus.call()).words[0];
+      const workflowStatus = (await VotingInstance.workflowStatus.call());
       const transaction = await VotingInstance.endProposalsRegistering({from: _owner});
 
       expectEvent(transaction, 'WorkflowStatusChange', {
         previousStatus: BN(workflowStatus),
-        newStatus: BN(workflowStatus+1)
+        newStatus: BN(workflowStatus).add(BN(1))
       });
     });
   });
@@ -267,17 +267,17 @@ contract("Voting", accounts => {
     it("should emit the event WorkflowStatusChange with the status", async () => {
       await VotingInstance.startProposalsRegistering({from: _owner});
       await VotingInstance.endProposalsRegistering({from: _owner});
-      const workflowStatus = BN(await VotingInstance.workflowStatus.call()).words[0];
+      const workflowStatus = (await VotingInstance.workflowStatus.call());
       const transaction = await VotingInstance.startVotingSession({from: _owner});
 
       expectEvent(transaction, 'WorkflowStatusChange', {
         previousStatus: BN(workflowStatus),
-        newStatus: BN(workflowStatus+1)
+        newStatus: BN(workflowStatus).add(BN(1))
       });
     });
   });
 
-  describe.only('endVotingSession state', async() => {
+  describe('endVotingSession state', async() => {
 
     it("Can't change workflow to endVotingSession if not owner", async () => {  
       await VotingInstance.startProposalsRegistering({from: _owner});
@@ -302,13 +302,72 @@ contract("Voting", accounts => {
       await VotingInstance.startProposalsRegistering({from: _owner});
       await VotingInstance.endProposalsRegistering({from: _owner});
       await VotingInstance.startVotingSession({from: _owner});
-      const workflowStatus = BN(await VotingInstance.workflowStatus.call()).words[0];
+      const workflowStatus = (await VotingInstance.workflowStatus.call());
       const transaction = await VotingInstance.endVotingSession({from: _owner});
 
       expectEvent(transaction, 'WorkflowStatusChange', {
         previousStatus: BN(workflowStatus),
-        newStatus: BN(workflowStatus+1)
+        newStatus: BN(workflowStatus).add(BN(1))
       });
     });
   });
+
+  describe('tallyVotes state', async() => {
+
+    it("Can't call tallyVotes if not owner", async () => {  
+      const storedData = VotingInstance.tallyVotes({from: _voter1});
+      await expectRevert(storedData, "caller is not the owner");          
+    });
+
+    it("Can't call tallyvotes if workflow not at step endVotingSession", async () => {  
+      const storedData = VotingInstance.tallyVotes({from: _owner});
+      await expectRevert(storedData, "Current status is not voting session ended");          
+    });
+
+    it("Can call tallyVotes", async () => {
+      await VotingInstance.addVoter(_owner, {from: _owner});
+      await VotingInstance.addVoter(_voter1, {from: _owner});
+      await VotingInstance.startProposalsRegistering({from: _owner});
+      await VotingInstance.addProposal("Ma proposition", {from: _owner});
+      await VotingInstance.addProposal("Ma proposition 2", {from: _voter1});
+      await VotingInstance.endProposalsRegistering({from: _owner});
+      await VotingInstance.startVotingSession({from: _owner});
+      await VotingInstance.setVote(1, {from: _owner});
+      await VotingInstance.setVote(1, {from: _voter1});
+      await VotingInstance.endVotingSession({from: _owner});
+      await VotingInstance.tallyVotes({from: _owner});   
+      const transaction = await VotingInstance.winningProposalID.call();
+      expect(transaction).to.be.bignumber.equal(BN(1));
+    });
+    
+    it("Should change to VotesTallied if winner", async () => {
+      await VotingInstance.addVoter(_owner, {from: _owner});
+      await VotingInstance.startProposalsRegistering({from: _owner});
+      await VotingInstance.addProposal("Ma proposition", {from: _owner});
+      await VotingInstance.endProposalsRegistering({from: _owner});
+      await VotingInstance.startVotingSession({from: _owner});
+      await VotingInstance.setVote(1, {from: _owner});
+      await VotingInstance.endVotingSession({from: _owner});
+      await VotingInstance.tallyVotes({from: _owner});   
+      expect(await VotingInstance.workflowStatus.call()).to.be.bignumber.equal(BN(5));
+    });
+
+    it("should emit the event WorkflowStatusChange from tallyVotes to VotesTallied", async () => {
+      await VotingInstance.addVoter(_owner, {from: _owner});
+      await VotingInstance.startProposalsRegistering({from: _owner});
+      await VotingInstance.addProposal("Ma proposition", {from: _owner});
+      await VotingInstance.endProposalsRegistering({from: _owner});
+      await VotingInstance.startVotingSession({from: _owner});
+      await VotingInstance.setVote(1, {from: _owner});
+      await VotingInstance.endVotingSession({from: _owner});
+      const transaction = await VotingInstance.tallyVotes({from: _owner});   
+      const workflowStatus = (await VotingInstance.workflowStatus.call());
+
+      expectEvent(transaction, 'WorkflowStatusChange', {
+        previousStatus: BN(workflowStatus).sub(BN(1)),
+        newStatus: BN(workflowStatus)
+      });
+    });
+  });
+
 });
