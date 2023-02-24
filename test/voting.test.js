@@ -21,6 +21,19 @@ contract("Voting", accounts => {
     });
   });
 
+  // ::::::::::::: GETTERS ::::::::::::: //
+
+  describe('Getters', async() => {
+
+    it("Can't add get voter if not owner", async () => {
+      await expectRevert(VotingInstance.getVoter.call(_voter1, {from: _voter1}), "You're not a voter");
+    });
+
+    it("Can't add get one proposal if not owner", async () => {
+      await expectRevert(VotingInstance.getOneProposal(_voter1, {from: _voter1}), "You're not a voter");
+    });
+  });
+
   // ::::::::::::: REGISTRATION ::::::::::::: //
 
   describe('Registration step', async() => {
