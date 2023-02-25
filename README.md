@@ -1,32 +1,36 @@
 [![codecov](https://codecov.io/gh/fabcoulon/unittests/branch/main/graph/badge.svg?token=MFHIKCXHO5)](https://codecov.io/gh/fabcoulon/unittests)
 
 
-File         |  % Stmts | % Branch |  % Funcs |  % Lines |Uncovered Lines |
--------------|----------|----------|----------|----------|----------------|
- contracts/  |      100 |      100 |      100 |      100 |                |
-  Voting.sol |      100 |      100 |      100 |      100 |                |
--------------|----------|----------|----------|----------|----------------|
-All files    |      100 |      100 |      100 |      100 |                |
--------------|----------|----------|----------|----------|----------------|
-
+### General Info
+***
+This is a unit test project based on a basic voting system. Tests are organized by function.
+Each function has its own describe. Within it the function is tested as follow:
+- Test modifiers
+- Test requires
+- Test operations
+- Test event emit
 
 ## Table of Contents
 1. [General Info](#general-info)
 2. [Technologies](#technologies)
-3. [Installation](#installation)
-4. [Collaboration](#collaboration)
-5. [FAQs](#faqs)
-### General Info
-***
-Write down the general informations of your project. It is worth to always put a project status in the Readme file. This is where you can add it. 
-### Screenshot
-![Image text](https://www.united-internet.de/fileadmin/user_upload/Brands/Downloads/Logo_IONOS_by.jpg)
+3. [Test Function organisation](#test-function-organisation)
+4. [Installation](#installation)
+5. [Code Coverage](#code-coverage)
+
 ## Technologies
 ***
 A list of technologies used within the project:
 * [Technologie name](https://example.com): Version 12.3 
 * [Technologie name](https://example.com): Version 2.34
 * [Library name](https://example.com): Version 1234
+
+## Test Function organisation
+***
+A list of technologies used within the project:
+* [Technologie name](https://example.com): Version 12.3 
+* [Technologie name](https://example.com): Version 2.34
+* [Library name](https://example.com): Version 1234
+
 ## Installation
 ***
 A little intro about the installation. 
@@ -37,12 +41,20 @@ $ npm install
 $ npm start
 ```
 Side information: To use the application in a special environment use ```lorem ipsum``` to start
-## Collaboration
+## Code coverage
 ***
 Give instructions on how to collaborate with your project.
 > Maybe you want to write a quote in this part. 
 > It should go over several rows?
 > This is how you do it.
+
+File         |  % Stmts | % Branch |  % Funcs |  % Lines |Uncovered Lines |
+-------------|----------|----------|----------|----------|----------------|
+ contracts/  |      100 |      100 |      100 |      100 |                |
+  Voting.sol |      100 |      100 |      100 |      100 |                |
+-------------|----------|----------|----------|----------|----------------|
+All files    |      100 |      100 |      100 |      100 |                |
+-------------|----------|----------|----------|----------|----------------|
 ## FAQs
 ***
 A list of frequently asked questions
