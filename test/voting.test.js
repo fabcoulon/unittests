@@ -141,6 +141,15 @@ contract("Voting", accounts => {
       await expectRevert(VotingInstance.setVote(0, {from: _voter1}), "Voting session havent started yet");
     });
 
+    it("Can't vote if already voted", async () => {  
+        await VotingInstance.startProposalsRegistering();
+        await VotingInstance.addProposal("Ma proposition", {from: _voter1});
+        await VotingInstance.endProposalsRegistering();
+        await VotingInstance.startVotingSession();
+        VotingInstance.setVote(0, {from: _voter1})
+        await expectRevert(VotingInstance.setVote(0, {from: _voter1}), "You have already voted");          
+    });
+
     it("Voted proposal does not exist", async () => {
       await VotingInstance.startProposalsRegistering();
       await VotingInstance.addProposal("Ma proposition", {from: _voter1});
