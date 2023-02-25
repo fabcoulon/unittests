@@ -49,13 +49,13 @@ contract("Voting", accounts => {
       await expectRevert(VotingInstance.addVoter(_voter1, {from: _owner}), "Voters registration is not open yet");
     });
 
-    it("can't add voter if already registred", async () => {
+    it("Can't add voter if already registred", async () => {
       await VotingInstance.addVoter(_voter1, {from: _owner});
       await expectRevert(VotingInstance.addVoter(_voter1, {from: _owner}), "Already registered");
       await expectRevert(VotingInstance.getVoter.call(_voter1, {from: _owner}), "You're not a voter");
       });
 
-    it("can't add voter if not owner", async () => {
+    it("Can't add voter if not owner", async () => {
       await expectRevert(VotingInstance.addVoter(_voter1, {from: _voter1}), "caller is not the owner");
       await expectRevert(VotingInstance.getVoter.call(_voter1, {from: _voter1}), "You're not a voter");
     });
@@ -65,7 +65,7 @@ contract("Voting", accounts => {
       expect((await VotingInstance.getVoter.call(_voter1, {from: _voter1})).isRegistered).to.be.true;
     });
 
-    it("should emit the event VoterRegistered with the voter registred", async () => {
+    it("Should emit the event VoterRegistered with the voter registred", async () => {
       const transaction = await VotingInstance.addVoter(_voter1, {from: _owner}); 
       expectEvent(transaction, 'VoterRegistered', {
       voterAddress: _voter1
@@ -110,7 +110,7 @@ contract("Voting", accounts => {
       expect((await VotingInstance.getOneProposal(3, {from: _voter2})).description).to.have.string("Ma proposition 3");
     });
 
-    it("should emit the event ProposalRegistered with the proposal position in array", async () => {
+    it("Should emit the event ProposalRegistered with the proposal position in array", async () => {
       await VotingInstance.startProposalsRegistering();
       const transaction = await VotingInstance.addProposal("Ma proposition", {from: _voter1});
       expectEvent(transaction, 'ProposalRegistered', {
@@ -193,7 +193,7 @@ contract("Voting", accounts => {
       expect((await VotingInstance.getOneProposal.call(2, {from: _voter1})).voteCount).to.be.bignumber.equal(BN(1));
     });
 
-    it("should emit the event Voted with the voter address and selected proposal id", async () => {
+    it("Should emit the event Voted with the voter address and selected proposal id", async () => {
       await VotingInstance.startProposalsRegistering();
       await VotingInstance.addProposal("Ma proposition", {from: _voter1});
       await VotingInstance.endProposalsRegistering();
@@ -237,7 +237,7 @@ contract("Voting", accounts => {
       expect((await VotingInstance.getOneProposal.call(0, {from: _voter1})).description).to.have.string("GENESIS");
     }); 
     
-    it("should emit the event WorkflowStatusChange with the status", async () => {
+    it("Should emit the event WorkflowStatusChange with the status", async () => {
       const workflowStatus = await VotingInstance.workflowStatus.call();
       const transaction = await VotingInstance.startProposalsRegistering({from: _owner});
 
@@ -269,7 +269,7 @@ contract("Voting", accounts => {
       expect(await VotingInstance.workflowStatus.call()).to.be.bignumber.equal(BN(2));        
     });
 
-    it("should emit the event WorkflowStatusChange with the status", async () => {
+    it("Should emit the event WorkflowStatusChange with the status", async () => {
       await VotingInstance.startProposalsRegistering({from: _owner});
       const workflowStatus = (await VotingInstance.workflowStatus.call());
       const transaction = await VotingInstance.endProposalsRegistering({from: _owner});
@@ -303,7 +303,7 @@ contract("Voting", accounts => {
       expect(await VotingInstance.workflowStatus.call()).to.be.bignumber.equal(BN(3));        
     });
 
-    it("should emit the event WorkflowStatusChange with the status", async () => {
+    it("Should emit the event WorkflowStatusChange with the status", async () => {
       await VotingInstance.endProposalsRegistering({from: _owner});
       const workflowStatus = (await VotingInstance.workflowStatus.call());
       const transaction = await VotingInstance.startVotingSession({from: _owner});
@@ -338,7 +338,7 @@ contract("Voting", accounts => {
       expect(await VotingInstance.workflowStatus.call()).to.be.bignumber.equal(BN(4));        
     });
 
-    it("should emit the event WorkflowStatusChange with the status", async () => {
+    it("Should emit the event WorkflowStatusChange with the status", async () => {
       await VotingInstance.startVotingSession({from: _owner});
       const workflowStatus = (await VotingInstance.workflowStatus.call());
       const transaction = await VotingInstance.endVotingSession({from: _owner});
@@ -423,7 +423,7 @@ contract("Voting", accounts => {
       expect(await VotingInstance.workflowStatus.call()).to.be.bignumber.equal(BN(5));
     });
 
-    it("should emit the event WorkflowStatusChange from tallyVotes to VotesTallied", async () => {
+    it("Should emit the event WorkflowStatusChange from tallyVotes to VotesTallied", async () => {
       await VotingInstance.addVoter(_owner, {from: _owner});
       await VotingInstance.startProposalsRegistering({from: _owner});
       await VotingInstance.addProposal("Ma proposition", {from: _owner});
