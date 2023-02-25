@@ -13,7 +13,7 @@ Each function has its own describe. Within it the function is tested as follow:
 ## Table of Contents
 1. [General Info](#general-info)
 2. [Technologies](#technologies)
-3. [Test Functions organisation](#test-function-organisation)
+3. [Test Functions organisation](#test-functions-organisation)
 4. [Installation](#installation)
 
 ## Technologies
