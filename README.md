@@ -15,13 +15,16 @@ Each function has its own describe. Within it the function is tested as follow:
 2. [Technologies](#technologies)
 3. [Test Functions organisation](#test-function-organisation)
 4. [Installation](#installation)
+5. [Code coverage](#code-coverage)
 
 ## Technologies
 ***
-A list of technologies used within the project:
-* [Technologie name](https://example.com): Version 12.3 
-* [Technologie name](https://example.com): Version 2.34
-* [Library name](https://example.com): Version 1234
+A list of technologies and libraries used within the project:
+- [Truffle](https://github.com/trufflesuite): compile and run the smart contracts on a local development network
+- [Solidity](https://docs.soliditylang.org/en/v0.8.19/): object-oriented, high-level language for implementing  smart contracts
+- [ganache](https://github.com/trufflesuite/ganache): A tool for creating a local blockchain for fast Ethereum development
+- [Open zeppelin test helpers](https://www.npmjs.com/package/@openzeppelin/test-helpers) Assertion library for Ethereum smart contract testing
+- [chai](https://github.com/chaijs): Assertion library
 
 ## Test Functions organisation
 ***
@@ -109,20 +112,25 @@ tallyVotes state
 
 ## Installation
 ***
-A little intro about the installation. 
+To run the unit tests, please follow the instructions below. 
 ```
-$ git clone https://example.com
+$ git clone https://github.com/fabcoulon/unittests.git
 $ cd ../path/to/the/file
-$ npm install
-$ npm start
+$ npm install -g ganache 
+$ npm install -g truffle
+$ npm install @truffle/hdwallet-provider  
+$ npm install @openzeppelin/test-helpers
+$ npm install @openzeppelin/contracts
+$ npm install chai
+On one bash lanch a local blockchain
+$ ganache
+On another bash
+$ truffle test
 ```
 
 ## Code coverage
 ***
-Give instructions on how to collaborate with your project.
-> Maybe you want to write a quote in this part. 
-> It should go over several rows?
-> This is how you do it.
+Table from hardhat coverage
 
 File         |  % Stmts | % Branch |  % Funcs |  % Lines |Uncovered Lines |
 -------------|----------|----------|----------|----------|----------------|
