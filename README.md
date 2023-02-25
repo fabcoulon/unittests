@@ -1,4 +1,4 @@
-![check-code-coverage](https://img.shields.io/badge/code--coverage-100%-brightgreen)
+[![codecov](https://codecov.io/gh/fabcoulon/unittests/branch/main/graph/badge.svg?token=MFHIKCXHO5)](https://codecov.io/gh/fabcoulon/unittests)
 
 
 File         |  % Stmts | % Branch |  % Funcs |  % Lines |Uncovered Lines |
